@@ -45,4 +45,42 @@ const uploadProfile = async(req, res) => {
   }
 }
 
-module.exports = { createUser, uploadProfile };
+const getProfileImage = async(req, res) => {
+  try{
+    const user = await User.findById(req.params.id);
+    if(!user){
+      return res.status(404).json({ message: 'User not found'});
+    }
+    res.status(200).json(user);
+  }
+  catch(err){
+    res.status(500).json({ message: err.message });
+  }
+}
+
+const deleteProfileImage = async(req, res) => {
+  try{
+    const user = await User.findById(req.params.id);
+    if(!user){
+      return res.status(404).json({ message: 'User not found'});
+    }
+    if(!user.profileImage){
+      return res.status(400).json({ message: 'No profile image found'});
+    }
+
+    const imagePath = path.join(__dirname, '../uploads', user.profileImage);
+    if(fs.existsSync(imagePath)){
+      fs.unlinkSync(imagePath);
+    }
+
+    user.profileImage = "";
+    await user.save();
+    res.status(200).json({ message: 'Profile image deleted successfully' });
+
+  }
+  catch(err){
+    res.status(500).json({ message: err.message });
+  }
+}
+
+module.exports = { createUser, uploadProfile, getProfileImage, deleteProfileImage };
